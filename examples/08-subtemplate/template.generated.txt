@@ -4,7 +4,7 @@
     street: <no value> <no value>
  - labels:
     app: nginx
-    name: .Name
+    name: John Doe
     street: <no value> <no value>
  - labels:
     app: nginx
