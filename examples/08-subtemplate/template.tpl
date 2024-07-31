@@ -9,7 +9,7 @@
  - labels:
     app: nginx
     {{- if .Name}}
-    name: .Name
+    name: {{ .Name }}
     {{- end}}
     street: {{ .Street }} {{ .City }}
 {{- end }}
