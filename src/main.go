@@ -1,19 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"github.com/ghodss/yaml"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"github.com/Masterminds/sprig"
 	"text/template"
-	"bytes"
 	"unicode"
+
+	"github.com/Masterminds/sprig"
+	"github.com/ghodss/yaml"
 )
 
 type MultipleFileData struct {
@@ -29,6 +30,7 @@ func main() {
 	templateFileName := flag.String("t", "", "go template file")
 	outputDirectory := flag.String("o", ".", "output directory")
 	multipleFiles := flag.String("m", "", "-m multi : generates one file for each File object in Json (or Yaml) data file")
+	fileExtension := flag.String("e", ".tf", "output file extension")
 	flag.Parse()
 
 	flag.Usage = func() {
@@ -56,11 +58,11 @@ func main() {
 
 	defer dataFile.Close()
 
-	byteValue, err := ioutil.ReadAll(dataFile)
+	byteValue, err := io.ReadAll(dataFile)
 	if err != nil {
 		fmt.Println(err)
 	}
-	byteValue,err = ToJSON(byteValue)
+	byteValue, err = ToJSON(byteValue)
 
 	if hasMultipleFiles {
 		var multidata MultipleFileData
@@ -82,7 +84,8 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		outputFileName := strings.TrimSuffix(*dataFileName, filepath.Ext(*dataFileName)) + ".generated.txt"
+
+		outputFileName := strings.TrimSuffix(filepath.Base(*templateFileName), filepath.Ext(*templateFileName)) + *fileExtension
 		generateFile(template, *outputDirectory, outputFileName, data)
 	}
 }
@@ -91,7 +94,7 @@ func generateFile(template *template.Template, outputDirectory string, outputFil
 	absOutputFileName := path.Join(outputDirectory, outputFileName)
 	os.MkdirAll(path.Dir(absOutputFileName), os.ModePerm)
 	outputFile, err := os.Create(absOutputFileName)
-	fmt.Println("Generating file : " + absOutputFileName )
+	fmt.Println("Generating file : " + absOutputFileName)
 	defer outputFile.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -115,4 +118,3 @@ func hasJSONPrefix(buf []byte) bool {
 	trim := bytes.TrimLeftFunc(buf, unicode.IsSpace)
 	return bytes.HasPrefix(trim, jsonPrefix)
 }
-
